@@ -32,14 +32,12 @@ class HP54616BFrontEnd(QWidget):
             chan = QGroupBox()
             self.channelControls.append(chan)
             chan.n = channel
-            Ui_channel_controls().setupUi(chan)
+            chan_ui = Ui_channel_controls()
+            chan_ui.setupUi(chan)
             chan.setTitle('Channel {:d}'.format(channel))
-            connect_feat(chan.findChild((QWidget,),'range'), self.inst,
-                    'range',channel)
-            connect_feat(chan.findChild((QWidget,),'offset'), self.inst,
-                    'offset',channel)
-            connect_feat(chan.findChild((QWidget,),'visible'), self.inst,
-                    'visible',channel)
+            connect_feat(chan_ui.range, self.inst, 'range', channel)
+            connect_feat(chan_ui.offset, self.inst, 'offset', channel)
+            connect_feat(chan_ui.visible, self.inst, 'visible', channel)
             self.ui.controlBox.addWidget(chan)
 
         self.figure = Figure()
