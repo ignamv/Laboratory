@@ -1,4 +1,4 @@
-LantzTests
+Laboratory
 ==========
 
 * HP54616B/ has a Lantz driver for the HP 54616B DSO and a simple user interface.

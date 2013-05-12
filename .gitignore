@@ -1,5 +1,8 @@
 *.py[cod]
+<<<<<<< HEAD
 __pycache__
+=======
+>>>>>>> f5382822ca5be3a627884e9216a3f0d1d4a33133
 
 # C extensions
 *.so
