@@ -4,7 +4,6 @@ from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg
 from matplotlib.figure import Figure
 from PyQt4.QtCore import QTimer
 from PyQt4.QtGui import QApplication,QWidget,QVBoxLayout,QHBoxLayout,QGroupBox,QPushButton,QSpinBox,QCheckBox
-#import matplotlib
 import numpy as np
 
 from lantz.ui.qtwidgets import connect_feat, connect_driver
