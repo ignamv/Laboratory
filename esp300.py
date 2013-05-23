@@ -75,6 +75,16 @@ class ESP300(GPIBVisaDriver):
     def target_velocity(self, axis, velocity):
         self.send('{:d}VA{:f}'.format(axis, velocity))
 
+    def motion_done(self, axis):
+        """Return True if the axis has reached its target"""
+        return bool(int(self.query('{:d}MD?'.format(axis))))
+
+    #TODO: switch from polling to waiting for a Service Request event
+    def wait_motion_done(self):
+        """Wait for axes to reach their target"""
+        while not all(self.motion_done(axis) for axis in self.axes):
+            pass
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
@@ -95,6 +105,7 @@ if __name__ == '__main__':
         log_to_screen(DEBUG)
     from lantz import Q_
     from time import sleep
+
     with ESP300('GPIB0::3::INSTR') as inst:
         for axis in inst.axes:
             print('Axis {:d}'.format(axis))
@@ -105,7 +116,8 @@ if __name__ == '__main__':
         print('Position: {:f}'.format(inst.position[1]))
         print('Moving 1um')
         inst.target_position[1] = inst.position[1] + Q_(1, 'um')
-        sleep(1)
-        print('Stopping')
-        inst.stop()
+        print('Waiting to reach target')
+        inst.wait_motion_done()
+        #print('Stopping')
+        #inst.stop()
         print('Position: {:f}'.format(inst.position[1]))
