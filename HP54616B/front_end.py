@@ -1,9 +1,11 @@
+#--encoding: utf-8 --
 import logging
+from os.path import dirname,join
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg
 from matplotlib.figure import Figure
 from PyQt4.QtCore import QTimer
-from PyQt4.QtGui import QApplication,QWidget,QVBoxLayout,QHBoxLayout,QGroupBox,QPushButton,QSpinBox,QCheckBox
+from PyQt4.QtGui import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QPushButton, QSpinBox, QCheckBox, QDirModel
 import numpy as np
 
 from lantz.ui.qtwidgets import connect_feat, connect_driver
@@ -48,32 +50,47 @@ class HP54616BFrontEnd(QWidget):
         self.ui.refreshAuto.clicked.connect(self.refreshConfig)
         self.plotDelay = self.findChild((QWidget,),'refreshDelay')
 
+        self.dirmodel = QDirModel()
+        self.ui.directory.setModel(self.dirmodel)
+
     def plot(self):
         self.axes.cla()
         channels = [chanBox.n for chanBox in self.channelControls
                     if chanBox.findChild((QCheckBox,),'visible').isChecked()]
         logger.info('Plotting channels '+','.join(str(c) for c in channels))
-        data = self.inst.data(channels)
+        self.data = self.inst.data(channels)
         for i in range(len(channels)):
-            self.axes.plot(data[0],data[i+1])
+            self.axes.plot(self.data[0],self.data[i+1])
         self.figureCanvas.draw()
         if self.ui.refreshAuto.isChecked():
             self.timer.setInterval(self.plotDelay.value())
             self.timer.start()
 
+    #FIXME: this method is called twice on every button press
+    def on_save_clicked(self):
+        filename = join(dirname(self.dirmodel.filePath(
+            self.ui.directory.currentIndex())), self.ui.filename.text)
+        logger.info('Saving at ' + filename)
+        np.savetxt(filename, [d.magnitude for d in self.data[0:1]],
+                   delimiter=',')
+
     def refreshConfig(self,checkState):
         if checkState == 2:
             self.timer.start()
         
-    def __del__(self):
+    def closeEvent(self, event):
+        print('__del__')
         self.inst.finalize()
+
 
 if __name__=='__main__':
     logger.setLevel(logging.DEBUG)
     from os import sys
     app = QApplication(sys.argv)
+    app.setOrganizationName('Laboratory')
+    app.setApplicationName('HP54616B Frontend')
     v = HP54616BFrontEnd('GPIB0::14::INSTR')
-    v.show()
+    v.showMaximized()
     exit(app.exec_())
 
 
