@@ -52,10 +52,12 @@ class HP54616B(GPIBVisaDriver):
     def setup(self, value):
         self.send(b':SYSTem:SETUP ' + value)
 
-    @Feat(limits=(1, 5000))
+    valid_points = [100, 200, 250, 400, 500, 800, 1000, 2000, 2500, 4000, 5000]
+    @Feat(values=dict(zip(valid_points,valid_points)))
     def points(self):
-        """Number of waveform points to be transferred on acquisition
-        """
+        """Number of waveform points to be transferred on acquisition. Valid
+        values are {:s}
+        """.format(', '.join(str(k) for k in self.valid_points))
         return int(self.query(':WAVEFORM:POINTS?'))
 
     @points.setter
