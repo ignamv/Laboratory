@@ -24,12 +24,15 @@ class ESP300(GPIBVisaDriver):
     RECV_CHUNK = -1
 
     axes = range(1, 4)
+    unit_codes = {'um': 3, 'mm': 2}
+    axis_units = 'mm'
 
     def initialize(self):
         super().initialize()
-        # Set all axes to micrometers
+        # Set all axes to the right units
         for axis in self.axes:
-            self.send('{:d}SN3'.format(axis))
+            self.send('{:d}SN{:d}'.format(axis, 
+                self.unit_codes[self.axis_units]))
 
     @Action()
     def stop(self):
@@ -43,13 +46,20 @@ class ESP300(GPIBVisaDriver):
         """
         return self.query('{:d}ID?'.format(axis))
 
-    @DictFeat(units='um', keys=axes)
+    @DictFeat(units=axis_units, keys=axes)
     def position(self, axis):
-        """Actual position
+        """Actual position. Setting this feat moves the home point.
+
+        Setting position to 0 makes the current position into the
+        origin of coordinates (home).
         """
         return float(self.query('{:d}TP'.format(axis)))
 
-    @DictFeat(units='um', keys=axes)
+    @position.setter
+    def position(self, axis, position):
+        self.send('{:d}DH{:f}'.format(axis,position))
+
+    @DictFeat(units=axis_units, keys=axes)
     def target_position(self, axis):
         """Desired position
         """
@@ -59,13 +69,16 @@ class ESP300(GPIBVisaDriver):
     def target_position(self, axis, position):
         self.send('{:d}PA{:f}'.format(axis, position))
 
-    @DictFeat(units='um/s', keys=axes)
+    def move(self, axis, displacement):
+        self.target_position[axis] = self.position[axis] + displacement
+
+    @DictFeat(units=axis_units+'/s', keys=axes)
     def velocity(self, axis):
         """Actual velocity
         """
         return float(self.query('{:d}TV'.format(axis)))
 
-    @DictFeat(units='um/s', keys=axes)
+    @DictFeat(units=axis_units+'/s', keys=axes)
     def target_velocity(self, axis):
         """Desired velocity
         """
@@ -74,6 +87,14 @@ class ESP300(GPIBVisaDriver):
     @target_velocity.setter
     def target_velocity(self, axis, velocity):
         self.send('{:d}VA{:f}'.format(axis, velocity))
+
+    @DictFeat(units=axis_units+'/s', keys=axes)
+    def maximum_velocity(self, axis):
+        return float(self.query('{:d}VU?'.format(axis)))
+
+    @maximum_velocity.setter
+    def maximum_velocity(self, axis, velocity):
+        self.send('{:d}VU{:f}'.format(axis, velocity))
 
     def motion_done(self, axis):
         """Return True if the axis has reached its target"""
@@ -113,9 +134,12 @@ if __name__ == '__main__':
             print('Position: {:f}'.format(inst.position[axis]))
             print('Target Position: {:f}'.format(inst.target_position[axis]))
             print('Velocity: {:f}'.format(inst.velocity[axis]))
+            print('Target Velocity: {:f}'.format(inst.target_velocity[axis]))
         print('Position: {:f}'.format(inst.position[1]))
         print('Moving 1um')
-        inst.target_position[1] = inst.position[1] + Q_(1, 'um')
+        inst.maximum_velocity[1] = Q_(400,'um/s')
+        inst.target_velocity[1] = Q_(200,'um/s')
+        inst.target_position[1] = inst.position[1] + Q_(1000, 'um')
         print('Waiting to reach target')
         inst.wait_motion_done()
         #print('Stopping')
