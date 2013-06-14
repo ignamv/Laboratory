@@ -1,53 +1,55 @@
-from HP54616B.hp54616b import HP54616B
 from esp300 import ESP300
 import numpy as np
 from lantz import Q_
+from lvdt import LVDT
+from os import listdir
 
-# LVDT calibration file.
-# First column: position in mm
-# Second column: voltage in V
-calibration_file = 'C:\\ignacio\\mediciones\\lvdt\\calibracion lvdt.csv'
 axis = 1
+calibration_file = 'C:\\ignacio\\mediciones\\lvdt\\calibracion lvdt.csv'
+oscilloscope_resource = 'GPIB0::14::INSTR'
+output_directory = 'C:\\ignacio\\mediciones\\posicionador'
 
-osc = HP54616B('GPIB0::14::INSTR')
-osc.initialize()
-# TODO: acquire the minimum possible number of points
-#osc.points = 100
+# Find the number of the last test run
+testrun_index = 1 + max(int(filename[7:10]) for filename 
+        in listdir(output_directory) if filename[:7]=='testrun')
+
+lvdt = LVDT(calibration_file, oscilloscope_resource)
 
 positioner = ESP300('GPIB0::3::INSTR')
 positioner.initialize()
 # From CMA-12PP manual
 positioner.maximum_velocity[axis] = Q_(400,'um/s')
-positioner.target_velocity[axis] = positioner.maximum_velocity[axis]/2
+positioner.target_velocity[axis] = positioner.maximum_velocity[axis]
 
-# Read calibration
-calib_data = np.loadtxt(calibration_file, delimiter=',')
-calibration = np.polyfit(calib_data[1], calib_data[0], 1)
-
-def read_lvdt():
-    """Position registered by the LVDT according to the calibration"""
-    voltages = osc.data([1])[1].to('V').magnitude
-    positions = Q_(np.polyval(calibration, voltages), 'mm')
-    return np.mean(positions)
-
-base = read_lvdt()
-# Change calibration so this is the origin of coordinates
-calibration[1] -= base.to('mm').magnitude
+# Set current position to 0
+lvdt.set(Q_(0,'mm'))
 positioner.position[axis] = Q_(0,'mm')
 
-displacement = Q_(5,'s') * positioner.target_velocity[axis]
-print('LVDT: {:!s}'.format(read_lvdt().to('mm')))
-print('Positioner: {:!s}'.format(positioner.position[axis].to('mm')))
-print('Moving {:!s}'.format(displacement.to('mm')))
-positioner.move(axis, displacement)
-positioner.wait_motion_done()
-print('LVDT: {:!s}'.format(read_lvdt().to('mm')))
-print('Positioner: {:!s}'.format(positioner.position[axis].to('mm')))
-print('Moving {:!s}'.format(-displacement.to('mm')))
-positioner.move(axis, -displacement)
-positioner.wait_motion_done()
-print('LVDT: {:!s}'.format(read_lvdt().to('mm')))
-print('Positioner: {:!s}'.format(positioner.position[axis].to('mm')))
+lvdt_range = Q_(.1, 'inch').to('mm')
+targets = np.linspace(-lvdt_range, lvdt_range, 100)
+lvdt_readings = Q_(np.empty((len(targets))),'mm')
+positioner_readings = Q_(np.empty((len(targets))),'mm')
+for i,target in enumerate(targets):
+    print('Target {:d}: {:!s}'.format(i, target.to('mm')))
+    positioner.target_position[axis] = target
+    positioner.wait_motion_done()
+    print('LVDT says {:!s}'.format(lvdt.read()))
+    lvdt_readings[i] = lvdt.read()
+    positioner_readings[i] = positioner.position[axis]
 
-osc.finalize()
+print('Returning home')
+positioner.target_position[axis] = Q_(0,'mm')
+
+print(positioner_readings)
+print(lvdt_readings)
+
+# Data format: 2-column CSV file
+# First column: positioner readings in mm
+# First column: LVDT readings in mm
+data = np.vstack([positioner_readings, lvdt_readings]).transpose()
+np.savetxt(output_directory + '\\testrun{:03d}.csv'.format(testrun_index),
+           data, delimiter=',')
+
+# Wait for motion to finish?
+#positioner.wait_motion_done()
 positioner.finalize()
