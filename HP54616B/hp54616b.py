@@ -95,6 +95,11 @@ class HP54616B(GPIBVisaDriver):
     def timebase_mode(self, value):
         self.send(':TIMEBASE:MODE ' + value)
 
+    @DictFeat(units='V', keys=channels)
+    def average_signal(self, channel):
+        self.send(':MEASURE:SOURCE CHANNEL{:d}'.format(channel))
+        return float(self.query(':MEASURE:VAVG?'))
+
     @Feat(units='s')
     def timebase_delay(self):
         """Time base delay.
