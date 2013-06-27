@@ -98,7 +98,7 @@ class HP54616B(GPIBVisaDriver):
     @DictFeat(units='V', keys=channels)
     def average_signal(self, channel):
         self.send(':MEASURE:SOURCE CHANNEL{:d}'.format(channel))
-        return float(self.query(':MEASURE:VAVG?'))
+        return float(self.query(':MEASURE:VAVERAGE?'))
 
     @Feat(units='s')
     def timebase_delay(self):
