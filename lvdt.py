@@ -23,7 +23,7 @@ class LVDT():
 
     def read(self):
         """Position registered by the LVDT according to the calibration"""
-        voltages = self.osc.data([1])[1].to('V').magnitude
+        voltages = self.osc.average_signal[1].to('V').magnitude
         positions = Q_(np.polyval(self.calibration, voltages), 'mm')
         return np.mean(positions)
 
