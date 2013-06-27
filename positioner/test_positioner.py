@@ -13,18 +13,29 @@ output_directory = 'C:\\ignacio\\mediciones\\posicionador'
 testrun_index = 1 + max(int(filename[7:10]) for filename 
         in listdir(output_directory) if filename[:7]=='testrun')
 
+output = open(output_directory + '\\testrun{:03d}.csv'.format(testrun_index),
+              'w')
+output.write('# axis={:d}\n'.format(axis))
+
 lvdt = LVDT(calibration_file, oscilloscope_resource)
 
 positioner = ESP300('GPIB0::3::INSTR')
 positioner.initialize()
 # From CMA-12PP manual
 positioner.maximum_velocity[axis] = Q_(400,'um/s')
-positioner.target_velocity[axis] = positioner.maximum_velocity[axis]
+positioner.target_velocity[axis] = positioner.maximum_velocity[axis] / 10
+
+output.write('# model={:s}\n'.format(positioner.ID[axis]))
+output.write('# target_velocity={:!s}\n'.format(
+             positioner.target_velocity[axis]))
 
 # Set current position to 0
+# Important: jog the positioner to its center of travel, and adjust the LVDT so
+# it reads 0V, _before_ running the program
 lvdt.set(Q_(0,'mm'))
 positioner.position[axis] = Q_(0,'mm')
 
+# LVDT is suposed to go from -10V to 10V,
 lvdt_range = Q_(.1, 'inch').to('mm')
 targets = np.linspace(-lvdt_range, lvdt_range, 100)
 lvdt_readings = Q_(np.empty((len(targets))),'mm')
@@ -47,8 +58,8 @@ print(lvdt_readings)
 # First column: positioner readings in mm
 # First column: LVDT readings in mm
 data = np.vstack([positioner_readings, lvdt_readings]).transpose()
-np.savetxt(output_directory + '\\testrun{:03d}.csv'.format(testrun_index),
-           data, delimiter=',')
+np.savetxt(output, data, delimiter=',')
+output.close()
 
 # Wait for motion to finish?
 #positioner.wait_motion_done()
