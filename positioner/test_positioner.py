@@ -3,6 +3,7 @@ import numpy as np
 from lantz import Q_
 from lvdt import LVDT
 from os import listdir
+from time import sleep
 
 axis = 1
 calibration_file = 'C:\\ignacio\\mediciones\\lvdt\\calibracion lvdt.csv'
@@ -14,8 +15,8 @@ testrun_index = 1 + max(int(filename[7:10]) for filename
         in listdir(output_directory) if filename[:7]=='testrun')
 
 output = open(output_directory + '\\testrun{:03d}.csv'.format(testrun_index),
-              'w')
-output.write('# axis={:d}\n'.format(axis))
+              'wb')
+output.write(bytes('# axis={:d}\n'.format(axis),'utf-8'))
 
 lvdt = LVDT(calibration_file, oscilloscope_resource)
 
@@ -25,9 +26,9 @@ positioner.initialize()
 positioner.maximum_velocity[axis] = Q_(400,'um/s')
 positioner.target_velocity[axis] = positioner.maximum_velocity[axis] / 10
 
-output.write('# model={:s}\n'.format(positioner.ID[axis]))
-output.write('# target_velocity={:!s}\n'.format(
-             positioner.target_velocity[axis]))
+output.write(bytes('# model={:s}\n'.format(positioner.ID[axis]),'utf-8'))
+output.write(bytes('# target_velocity={:!s}\n'.format(
+             positioner.target_velocity[axis]),'utf-8'))
 
 # Set current position to 0
 # Important: jog the positioner to its center of travel, and adjust the LVDT so
@@ -44,6 +45,8 @@ for i,target in enumerate(targets):
     print('Target {:d}: {:!s}'.format(i, target.to('mm')))
     positioner.target_position[axis] = target
     positioner.wait_motion_done()
+    # Wait for position to stabilize
+    sleep(0.1)
     print('LVDT says {:!s}'.format(lvdt.read()))
     lvdt_readings[i] = lvdt.read()
     positioner_readings[i] = positioner.position[axis]
