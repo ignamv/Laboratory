@@ -17,10 +17,6 @@ try:
 except Exception:
     testrun_index = 1
 
-output = open(output_directory + '\\run{:03d}.csv'.format(testrun_index),
-              'wb')
-output.write(bytes('# axis={:d}\n'.format(axis),'utf-8'))
-
 lvdt = LVDT(calibration_file, oscilloscope_resource)
 
 positioner = ESP300('GPIB0::3::INSTR')
@@ -28,10 +24,6 @@ positioner.initialize()
 # From CMA-12PP manual
 positioner.maximum_velocity[axis] = Q_(400,'um/s')
 positioner.target_velocity[axis] = positioner.maximum_velocity[axis] * 0.9
-
-output.write(bytes('# model={:s}\n'.format(positioner.ID[axis]),'utf-8'))
-output.write(bytes('# target_velocity={:!s}\n'.format(
-             positioner.target_velocity[axis]),'utf-8'))
 
 # Set current position to 0
 # Important: jog the positioner to its center of travel, and adjust the LVDT so
@@ -45,7 +37,6 @@ positions = np.linspace(-lvdt_range, lvdt_range, 10)
 # Go to each point and then back many times, then measure the dispersion in the
 # position measured at each point
 cycles = 10
-output.write(bytes('# cycles={:d}\n'.format(cycles),'utf-8'))
 targets = cycles * (list(range(len(positions)))+
                     list(range(len(positions)-2,0,-1))) + [0]
 
@@ -66,6 +57,14 @@ for i,target in enumerate(targets):
 print('Returning home')
 positioner.target_position[axis] = Q_(0,'mm')
 
+output = open(output_directory + '\\run{:03d}.csv'.format(testrun_index),
+              'wb')
+headers['axis'] = axis
+headers['model'] = positioner.ID[axis]
+headers['target_velocity'] = positioner.target_velocity[axis]
+headers['cycles'] = cycles
+output.write(bytes(''.join('# {:s}={:!s}\n'.format(key, val) for key,val 
+                           in headers.iteritems()), 'utf-8'))
 # Data format: 2-column CSV file
 # First column: positioner readings in mm
 # First column: LVDT readings in mm

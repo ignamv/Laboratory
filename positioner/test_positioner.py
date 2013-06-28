@@ -14,10 +14,6 @@ output_directory = 'C:\\ignacio\\mediciones\\posicionador'
 testrun_index = 1 + max(int(filename[7:10]) for filename 
         in listdir(output_directory) if filename[:7]=='testrun')
 
-output = open(output_directory + '\\testrun{:03d}.csv'.format(testrun_index),
-              'wb')
-output.write(bytes('# axis={:d}\n'.format(axis),'utf-8'))
-
 lvdt = LVDT(calibration_file, oscilloscope_resource)
 
 positioner = ESP300('GPIB0::3::INSTR')
@@ -26,9 +22,6 @@ positioner.initialize()
 positioner.maximum_velocity[axis] = Q_(400,'um/s')
 positioner.target_velocity[axis] = positioner.maximum_velocity[axis] / 10
 
-output.write(bytes('# model={:s}\n'.format(positioner.ID[axis]),'utf-8'))
-output.write(bytes('# target_velocity={:!s}\n'.format(
-             positioner.target_velocity[axis]),'utf-8'))
 
 # Set current position to 0
 # Important: jog the positioner to its center of travel, and adjust the LVDT so
@@ -61,6 +54,13 @@ print(lvdt_readings)
 # First column: positioner readings in mm
 # First column: LVDT readings in mm
 data = np.vstack([positioner_readings, lvdt_readings]).transpose()
+headers['axis'] = axis
+headers['model'] = positioner.ID[axis]
+headers['target_velocity'] = positioner.target_velocity[axis]
+output = open(output_directory + '\\testrun{:03d}.csv'.format(testrun_index),
+              'wb')
+output.write(bytes(''.join('# {:s}={:!s}\n'.format(key, val) for key,val 
+                           in headers.iteritems()), 'utf-8'))
 np.savetxt(output, data, delimiter=',')
 output.close()
 
