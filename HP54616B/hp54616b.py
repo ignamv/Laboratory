@@ -13,7 +13,7 @@
 import numpy as np
 
 from lantz.visa import GPIBVisaDriver
-from lantz import Feat, DictFeat, Q_
+from lantz import Feat, DictFeat, Q_, Action
 
 
 class HP54616B(GPIBVisaDriver):
@@ -97,11 +97,10 @@ class HP54616B(GPIBVisaDriver):
 
     @DictFeat(units='V', keys=channels)
     def average_signal(self, channel):
-            self.run()
+        self.run()
         self.send(':MEASURE:SOURCE CHANNEL{:d}'.format(channel))
         return float(self.query(':MEASURE:VAVERAGE?'))
 
-    @Action
     def run(self):
         self.send(':RUN')
 
