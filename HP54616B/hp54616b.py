@@ -97,6 +97,7 @@ class HP54616B(GPIBVisaDriver):
 
     @DictFeat(units='V', keys=channels)
     def average_signal(self, channel):
+            self.run()
         self.send(':MEASURE:SOURCE CHANNEL{:d}'.format(channel))
         return float(self.query(':MEASURE:VAVERAGE?'))
 
