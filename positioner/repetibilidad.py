@@ -12,8 +12,8 @@ output_directory = 'C:\\ignacio\\mediciones\\posicionador\\repetibilidad'
 
 # Find the number of the last test run
 try: 
-    testrun_index = 1 + max(int(filename[7:10]) for filename 
-            in listdir(output_directory) if filename[:7]=='run')
+    testrun_index = 1 + max(int(filename[3:6]) for filename 
+            in listdir(output_directory) if filename[:3]=='run')
 except Exception:
     testrun_index = 1
 
@@ -45,13 +45,12 @@ positions = np.linspace(-lvdt_range, lvdt_range, 10)
 # Go to each point and then back many times, then measure the dispersion in the
 # position measured at each point
 cycles = 10
-# For each target, sum the LVDT readings at every cycle
-lvdt_reading = Q_(np.zeros((len(positions))),'mm')
-# Also the square, in order to calculate dispersion
-lvdt2_reading = Q_(np.zeros((len(positions))),'mm**2')
-
+output.write(bytes('# cycles={:d}\n'.format(cycles),'utf-8'))
 targets = cycles * (list(range(len(positions)))+
                     list(range(len(positions)-2,0,-1))) + [0]
+
+lvdt_reading = Q_(np.zeros((len(targets))),'mm')
+positioner_reading = Q_(np.zeros((len(targets))),'mm')
 
 for i,target in enumerate(targets):
     position = positions[target]
@@ -61,8 +60,8 @@ for i,target in enumerate(targets):
     positioner.wait_motion_done()
     # Wait for position to stabilize
     sleep(.1)
-    lvdt_reading[target] += lvdt.read()
-    lvdt2_reading[target] += lvdt.read()**2
+    lvdt_reading[i] = lvdt.read()
+    positioner_reading[i] = position
 
 print('Returning home')
 positioner.target_position[axis] = Q_(0,'mm')
@@ -70,8 +69,8 @@ positioner.target_position[axis] = Q_(0,'mm')
 # Data format: 2-column CSV file
 # First column: positioner readings in mm
 # First column: LVDT readings in mm
-data = np.vstack([positions.magnitude, lvdt_reading.magnitude,
-                  lvdt2_reading.magnitude]).transpose()
+data = np.vstack([positioner_reading.magnitude, lvdt_reading.magnitude]
+                 ).transpose()
 np.savetxt(output, data, delimiter=',')
 output.close()
 
