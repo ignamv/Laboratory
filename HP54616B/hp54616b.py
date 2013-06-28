@@ -100,6 +100,10 @@ class HP54616B(GPIBVisaDriver):
         self.send(':MEASURE:SOURCE CHANNEL{:d}'.format(channel))
         return float(self.query(':MEASURE:VAVERAGE?'))
 
+    @Action
+    def run(self):
+        self.send(':RUN')
+
     @Feat(units='s')
     def timebase_delay(self):
         """Time base delay.
