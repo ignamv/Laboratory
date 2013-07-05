@@ -1,11 +1,11 @@
 #--encoding: utf-8 --
 import logging
-from os.path import dirname,join
+import os.path
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg
 from matplotlib.figure import Figure
 from PyQt4.QtCore import QTimer
-from PyQt4.QtGui import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QPushButton, QSpinBox, QCheckBox, QDirModel
+from PyQt4.QtGui import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QPushButton, QSpinBox, QCheckBox, QFileDialog
 import numpy as np
 
 from lantz.ui.qtwidgets import connect_feat, connect_driver
@@ -47,11 +47,9 @@ class HP54616BFrontEnd(QWidget):
         self.ui.plotBox.addWidget(self.figureCanvas)
         self.axes = self.figure.add_subplot(111)
         self.ui.plot.clicked.connect(self.plot)
+        self.ui.save.clicked.connect(self.save)
         self.ui.refreshAuto.clicked.connect(self.refreshConfig)
         self.plotDelay = self.findChild((QWidget,),'refreshDelay')
-
-        self.dirmodel = QDirModel()
-        self.ui.directory.setModel(self.dirmodel)
 
     def plot(self):
         self.axes.cla()
@@ -67,9 +65,9 @@ class HP54616BFrontEnd(QWidget):
             self.timer.start()
 
     #FIXME: this method is called twice on every button press
-    def on_save_clicked(self):
-        filename = join(dirname(self.dirmodel.filePath(
-            self.ui.directory.currentIndex())), self.ui.filename.text)
+    def save(self):
+        filename = QFileDialog.getSaveFileName(self, 'Save screen', 'C:\\',
+                'CSV file (*.csv *.txt))')
         logger.info('Saving at ' + filename)
         np.savetxt(filename, [d.magnitude for d in self.data[0:1]],
                    delimiter=',')
@@ -79,7 +77,6 @@ class HP54616BFrontEnd(QWidget):
             self.timer.start()
         
     def closeEvent(self, event):
-        print('__del__')
         self.inst.finalize()
 
 
