@@ -132,6 +132,17 @@ class HP54616B(GPIBVisaDriver):
     def timebase_range(self, value):
         self.send('TIMEBASE:RANGE {:f}'.format(value))
 
+    @Feat(values=dict(channel1='CHANNEL1',
+                      channel2='CHANNEL2',
+                      external='EXTERNAL',
+                      line='LINE'))
+    def trigger_source(self):
+        return self.query('TRIGGER:SOURCE?')
+
+    @trigger_source.setter
+    def trigger_source(self, source):
+        self.send('TRIGGER:SOURCE ' + source)
+
     @DictFeat(units='V', keys=channels, limits=(16e-3, 40))
     def range(self, key):
         """Full-scale vertical scale of the channel
