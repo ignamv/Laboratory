@@ -3,7 +3,7 @@ import numpy as np
 import numpy
 from matplotlib import pyplot as plt
 
-parser = argparse.ArgumentParser('Plot spectrum')
+parser = argparse.ArgumentParser(description='Plot spectrum')
 parser.add_argument('input', type=argparse.FileType('r'))
 
 cfg = parser.parse_args()
