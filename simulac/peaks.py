@@ -1,20 +1,32 @@
-import argparse
 import numpy as np
-import numpy
-import scipy.signal
-from matplotlib import pyplot as plt
+def find_max(signal):
+    return np.nonzero((signal[1:-1] > signal[:-2]) * 
+                      (signal[1:-1] > signal[2:]))[0]+1
 
-parser = argparse.ArgumentParser('Plot peaks')
-parser.add_argument('input', type=argparse.FileType('r'))
+def find_min(signal):
+    return np.nonzero((signal[1:-1] < signal[:-2]) * 
+                      (signal[1:-1] < signal[2:]))[0]+1
 
-cfg = parser.parse_args()
+if __name__ == '__main__':
+    import argparse
+    import numpy
+    import scipy.signal
+    from matplotlib import pyplot as plt
 
-tau, interf = np.loadtxt(cfg.input, unpack=True)
+    parser = argparse.ArgumentParser(description='Plot peaks')
+    parser.add_argument('input', type=argparse.FileType('r'))
 
-peaks = scipy.signal.argrelmax(interf)
+    cfg = parser.parse_args()
 
-plt.figure()
-plt.plot(tau, interf, label='AC')
-plt.plot(tau[peaks], interf[peaks], 'rx', label='Peaks')
-plt.show()
+    tau, interf = np.loadtxt(cfg.input, unpack=True)
+
+
+    maxima = find_max(interf)
+    minima = find_min(interf)
+
+    plt.figure()
+    plt.plot(tau, interf, label='AC', color=(.9,.9,.9))
+    plt.plot(tau[maxima], interf[maxima], 'r-', label='Maxima')
+    plt.plot(tau[minima], interf[minima], 'g-', label='Minima')
+    plt.show()
 
