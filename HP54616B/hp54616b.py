@@ -25,6 +25,9 @@ class HP54616B(GPIBVisaDriver):
     SEND_TERMINATION = '\n'
     RECV_CHUNK = -1
 
+    # Value returned by MEASURE commands when a measurement can't be made
+    # (for example, part of the waveform is outside the display)
+    error_value = 9.9e37
     channels = range(1, 3)
 
     @Feat()
@@ -95,11 +98,17 @@ class HP54616B(GPIBVisaDriver):
     def timebase_mode(self, value):
         self.send(':TIMEBASE:MODE ' + value)
 
+    # TODO: raise exception when return value is 9.9e37
     @DictFeat(units='V', keys=channels)
     def average_signal(self, channel):
         self.run()
         self.send(':MEASURE:SOURCE CHANNEL{:d}'.format(channel))
         return float(self.query(':MEASURE:VAVERAGE?'))
+
+    acquisition_modes = ['normal', 'peak', 'average']
+    @Feat(values=dict(zip(acquisition_modes, acquisition_modes)))
+    def acquisition_mode(self):
+        return self.query(
 
     def run(self):
         self.send(':RUN')

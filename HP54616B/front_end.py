@@ -24,7 +24,7 @@ class HP54616BFrontEnd(QWidget):
 
         self.timer = QTimer(self)
         self.timer.setSingleShot(True)
-        self.timer.timeout.connect(self.plot)
+        self.timer.timeout.connect(self.refresh)
 
         self.ui = Ui_main_window()
         self.ui.setupUi(self)
@@ -46,19 +46,64 @@ class HP54616BFrontEnd(QWidget):
         self.figureCanvas = FigureCanvasQTAgg(self.figure)
         self.ui.plotBox.addWidget(self.figureCanvas)
         self.axes = self.figure.add_subplot(111)
-        self.ui.plot.clicked.connect(self.plot)
+        self.ui.plot.clicked.connect(self.refresh)
         self.ui.save.clicked.connect(self.save)
+        self.ui.checkMosaic.stateChanged.connect(self.setMosaic)
         self.ui.refreshAuto.clicked.connect(self.refreshConfig)
         self.plotDelay = self.findChild((QWidget,),'refreshDelay')
+        self.mosaic = False
 
-    def plot(self):
+    def setMosaic(self, state):
+        # TODO: put this somewhere sane
+        self.mosaic = (state == 2)
+
+    def refresh(self):
         self.axes.cla()
         channels = [chanBox.n for chanBox in self.channelControls
                     if chanBox.findChild((QCheckBox,),'visible').isChecked()]
-        logger.info('Plotting channels '+','.join(str(c) for c in channels))
-        self.data = self.inst.data(channels)
+        logger.info('Fetching channels '+','.join(str(c) for c in channels))
+        worker = dataWorker(self.inst, channels)
+        self.thread = QThread()
+        worker.moveToThread(self.thread)
+        thread.started.connect(worker.fetchData)
+        worker.output.connect(self.plot)
+        self.thread.start()
+
+    class dataWorker(QObject):
+        output = pyqtSignal(np.ndarray, list)
+        def __init__(self, instrument, channels):
+            super().__init__()
+            self.channels = channels
+            self.instrument = instrument
+
+        @pyqtSlot
+        def fetchData(self):
+            self.output.emit(self.instrument.data(self.channels), self.channels)
+
+    @pyqtSlot(np.ndarray, list)
+    def plot(self, data, channels):
+        self.thread = None
+        logger.info('Plotting')
         for i in range(len(channels)):
-            self.axes.plot(self.data[0],self.data[i+1])
+            if self.mosaic:
+                spectrum = np.fft.fft(self.data[i+1])
+                # TODO: make this configurable
+                # spectrum has peaks on 0, +-w and +-2w
+                # cut the first peak so the maximum is in w
+                crop = 10
+                w = np.argmax(spectrum[crop:len(spectrum)/2])+crop
+                print('Central: {}'.format(w))
+                print('Nyquist: {}'.format(len(spectrum)/2))
+                index = int(w/2)
+                spectrum[index:3*index] = 0
+                spectrum[-3*index:-index] = 0
+                spectrum[3*index:5*index] *= 2
+                spectrum[-5*index:-3*index] *= 2
+                mosaic = np.abs(np.fft.ifft(spectrum))
+                self.axes.plot(self.data[0],-self.data[i+1])
+                self.axes.plot(self.data[0],mosaic)
+            else:
+                self.axes.plot(self.data[0],self.data[i+1])
         self.figureCanvas.draw()
         if self.ui.refreshAuto.isChecked():
             self.timer.setInterval(self.plotDelay.value())
@@ -69,12 +114,14 @@ class HP54616BFrontEnd(QWidget):
         filename = QFileDialog.getSaveFileName(self, 'Save screen', 'C:\\',
                 'CSV file (*.csv *.txt))')
         logger.info('Saving at ' + filename)
-        np.savetxt(filename, [d.magnitude for d in self.data[0:1]],
+        np.savetxt(filename, [d.magnitude for d in self.data],
                    delimiter=',')
 
     def refreshConfig(self,checkState):
         if checkState == 2:
             self.timer.start()
+        else:
+            self.timer.stop()
         
     def closeEvent(self, event):
         self.inst.finalize()
