@@ -15,6 +15,7 @@ parser.add_argument('--pulse_width', type=toUnits('fs'), default=Q_(40, 'fs'))
 parser.add_argument('--wavelength', type=toUnits('nm'), default=Q_(830,'nm'))
 parser.add_argument('--sampling', type=float, default=1, help='Factor of the Nyquist sampling frequency to sample the autocorrelation at')
 parser.add_argument('--window', type=toUnits('fs'), help='Width of the window sampled')
+parser.add_argument('--chirp', type=float, default=0.)
 parser.add_argument('output', type=argparse.FileType('wb'))
 cfg = parser.parse_args()
 if cfg.window is None:
@@ -23,7 +24,6 @@ if cfg.window is None:
 angular_frequency = 2*sp.pi*LIGHT_SPEED/cfg.wavelength
 sample_frequency = 2.2*angular_frequency/np.pi * cfg.sampling
 samples = int((sample_frequency * cfg.window).to('dimensionless'))
-chirp = 0
 
 def gaussian(t, width=1., chirp=0.):
     return sp.exp(-((0.5+0.5j*chirp)/width**2)*t*t)
@@ -45,7 +45,7 @@ def autocorrelation_i2(envelope):
     return (tau, interf)
 
 t = sp.linspace(-cfg.window/2, cfg.window/2, samples)
-pulse = gaussian(t, cfg.pulse_width, chirp)
+pulse = gaussian(t, cfg.pulse_width, cfg.chirp)
 (tau, interf) = autocorrelation_i2(pulse)
 interf /= np.max(interf)
 
