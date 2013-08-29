@@ -21,8 +21,8 @@ if cfg.window is None:
     cfg.window = 10*cfg.pulse_width
 
 angular_frequency = 2*sp.pi*LIGHT_SPEED/cfg.wavelength
-samples = 15000
 sample_frequency = 2.2*angular_frequency/np.pi * cfg.sampling
+samples = int((sample_frequency * cfg.window).to('dimensionless'))
 chirp = 0
 
 def gaussian(t, width=1., chirp=0.):
@@ -48,12 +48,9 @@ t = sp.linspace(-cfg.window/2, cfg.window/2, samples)
 pulse = gaussian(t, cfg.pulse_width, chirp)
 (tau, interf) = autocorrelation_i2(pulse)
 interf /= np.max(interf)
-sample_times = np.linspace(tau[0],tau[-1], int((2*cfg.window*sample_frequency)
-                                               .to('dimensionless')))
-samples = scipy.interpolate.interp1d(tau, interf)(sample_times)
 
 # Write file
 for k in vars(cfg):
     cfg.output.write("# {} = {}\n".format(k, vars(cfg)[k]).encode('ascii'))
 cfg.output.write('# tau [fs]\t interf'.encode('ascii'))
-np.savetxt(cfg.output, np.vstack((sample_times,samples)).T)
+np.savetxt(cfg.output, np.vstack((tau, interf)).T)
