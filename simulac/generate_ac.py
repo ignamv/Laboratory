@@ -3,11 +3,7 @@ import scipy as sp
 import scipy.signal
 import sys
 import argparse
-
-from pint import UnitRegistry
-Q_ = UnitRegistry().Quantity
-def toUnits(units):
-    return lambda s: Q_(s).to(units)
+from toUnits import toUnits
 
 LIGHT_SPEED = Q_(3e8,'m/s')
 parser = argparse.ArgumentParser(description='Sample the autocorrelation of a gaussian beam')
