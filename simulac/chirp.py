@@ -2,7 +2,7 @@ import numpy as np
 from peaks import find_min
 from mosaic import mosaic
 
-def mosaicpeak(mosaic):
+def mosaicPeak(mosaic):
     return np.max(mosaic[find_min(mosaic)])/np.max(mosaic)
 
 if __name__ == '__main__':
@@ -12,4 +12,4 @@ if __name__ == '__main__':
     cfg = parser.parse_args()
 
     tau, mosaic = np.loadtxt(cfg.input, unpack=True)
-    print(mosaicpeak(mosaic))
+    print(mosaicPeak(mosaic))
