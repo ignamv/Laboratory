@@ -25,8 +25,8 @@ if __name__ == '__main__':
     import argparse
     from toUnits import toUnits
     from pint import UnitRegistry
+    from . import Q_
 
-    Q_ = UnitRegistry().Quantity
     LIGHT_SPEED = Q_(3e8,'m/s')
 
     parser = argparse.ArgumentParser(description=
