@@ -26,14 +26,14 @@ sample_frequency = 2.2*angular_frequency/np.pi * cfg.sampling
 samples = int((sample_frequency * cfg.window).to('dimensionless'))
 
 def gaussian(t, width=1., chirp=0.):
-    return sp.exp(-((0.5+0.5j*chirp)/width**2)*t*t)
+    return sp.exp(-((0.5+0.5j*chirp)*(t/width)**2))
 
-def autocorrelation_i2(envelope):
+def autocorrelation_i2(t, envelope, angular_frequency):
     envelopec = sp.conj(envelope)
     envelope2 = envelope*envelope
     envelope_mod2 = envelope*envelopec
-    # TODO make this reusable
-    tau = sp.linspace(-cfg.window, cfg.window, 2*samples-1)
+    trange = t[-1]-t[0]
+    tau = sp.linspace(-trange, trange, 2*len(envelope)-1)
     phase = sp.exp(-1j*angular_frequency*tau)
     interf  = 2*sp.sum(envelope_mod2**2)
     interf += 4*scipy.signal.fftconvolve(envelope2*envelopec,envelope)*phase
@@ -46,7 +46,7 @@ def autocorrelation_i2(envelope):
 
 t = sp.linspace(-cfg.window/2, cfg.window/2, samples)
 pulse = gaussian(t, cfg.pulse_width, cfg.chirp)
-(tau, interf) = autocorrelation_i2(pulse)
+(tau, interf) = autocorrelation_i2(t, pulse, angular_frequency)
 interf /= np.max(interf)
 
 # Write file
