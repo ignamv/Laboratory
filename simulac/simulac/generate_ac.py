@@ -23,8 +23,8 @@ def autocorrelation_i2(t, envelope, angular_frequency):
 if __name__ == '__main__':
     import sys
     import argparse
-    from toUnits import toUnits
-    from pint import UnitRegistry
+    from .toUnits import toUnits
+    from .pint import UnitRegistry
     from . import Q_
 
     LIGHT_SPEED = Q_(3e8,'m/s')

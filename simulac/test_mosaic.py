@@ -2,12 +2,13 @@ import argparse
 import numpy as np
 from matplotlib import pyplot as plt
 from pint import UnitRegistry
-from generate_ac import gaussian, autocorrelation_i2
-from mosaic import mosaic
-from chirp import mosaicPeak
-from toUnits import toUnits
-import tiza
-from . import Q_
+import simulac
+from simulac.generate_ac import gaussian, autocorrelation_i2
+from simulac.mosaic import mosaic
+from simulac.chirp import mosaicPeak
+from simulac.toUnits import toUnits
+from simulac import Q_
+import simulac.tiza as tiza
 
 LIGHT_SPEED = Q_(3e8,'m/s')
 

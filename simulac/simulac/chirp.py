@@ -1,6 +1,6 @@
 import numpy as np
-from peaks import find_min
-from mosaic import mosaic
+from .peaks import find_min
+from .mosaic import mosaic
 
 def mosaicPeak(mosaic):
     return np.max(mosaic[find_min(mosaic)])/np.max(mosaic)
