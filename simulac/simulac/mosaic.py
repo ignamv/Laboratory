@@ -1,7 +1,26 @@
+#-- encoding: utf-8 --
 import numpy as np
 import numpy
 
 def mosaic(interf):
+    """Process second-order autocorrelation with MOSAIC technique
+
+    Apply MOSAIC[1]_ to an autocorrelation signal.
+
+    Parameters
+    ----------
+    interf : ndarray
+        Input second-order autocorrelation
+
+    Returns
+    -------
+    mos : ndarray
+        Autocorrelation filtered with MOSAIC
+
+    References
+    ----------
+    .. [1]  T. Hirayama y M. Sheik-Bahae, «Real-time chirp diagnostic for ultrashort laser pulses», Optics letters, vol. 27, n.Âº 10, pp. 860-862, 2002.
+    """
     spectrum = numpy.fft.fft(interf)
     absfft = np.abs(spectrum)
 
