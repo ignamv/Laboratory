@@ -3,10 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from pint import UnitRegistry
 import simulac
-from simulac.generate_ac import gaussian, autocorrelation_i2
-from simulac.mosaic import mosaic
-from simulac.chirp import mosaicPeak
-from simulac.toUnits import toUnits
+from toUnits import toUnits
 from simulac import Q_
 import simulac.tiza as tiza
 
@@ -28,18 +25,13 @@ if cfg.window is None:
 
 angular_frequency = 2*np.pi*LIGHT_SPEED/cfg.wavelength
 sample_frequency = 2.2*angular_frequency/np.pi * cfg.sampling
-print(LIGHT_SPEED)
-print(cfg.wavelength)
-print(angular_frequency)
-print(sample_frequency)
-print(cfg.window)
 samples = int((sample_frequency * cfg.window).to('dimensionless'))
 
 t = np.linspace(-cfg.window/2, cfg.window/2, samples)
 def simulateMosaicPeak(chirp):
-    pulse = gaussian(t, cfg.pulse_width, chirp)
-    (tau, interf) = autocorrelation_i2(t, pulse, angular_frequency)
-    return mosaicPeak(mosaic(interf))
+    pulse = simulac.gaussian(t, cfg.pulse_width, chirp)
+    (tau, interf) = simulac.autocorrelation_i2(t, pulse, angular_frequency)
+    return simulac.mosaicPeak(simulac.mosaic(interf))
 
 chirps = np.linspace(cfg.chirp_min, cfg.chirp_max, cfg.steps)
 peaks = np.vectorize(simulateMosaicPeak)(chirps)
