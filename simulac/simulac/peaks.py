@@ -1,9 +1,11 @@
 import numpy as np
 def find_max(signal):
+    """Find local maxima of signal"""
     return np.nonzero((signal[1:-1] > signal[:-2]) * 
                       (signal[1:-1] > signal[2:]))[0]+1
 
 def find_min(signal):
+    """Find local minima of signal"""
     return np.nonzero((signal[1:-1] < signal[:-2]) * 
                       (signal[1:-1] < signal[2:]))[0]+1
 
