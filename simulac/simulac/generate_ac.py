@@ -20,6 +20,11 @@ def autocorrelation_i2(t, envelope, angular_frequency):
     interf = np.real(interf)
     return (tau, interf)
 
+def center_ac(ac):
+    """Zero the edges of the autocorrelation figure ac"""
+    samples = int(len(ac)/20)
+    return ac - np.mean(np.concatenate((ac[:samples],ac[-samples:])))
+
 if __name__ == '__main__':
     import sys
     import argparse
