@@ -2,9 +2,17 @@ import numpy as np
 import scipy.signal
 
 def gaussian(t, width=1., chirp=0.):
+    """Generate gaussian pulse
+
+    Evaluate a gaussian pulse with root-mean-square width *width* and linear chirp *chirp* at times *t*.
+    """
     return np.exp(-((0.5+0.5j*chirp)*(t/width)**2))
 
 def autocorrelation_i2(t, envelope, angular_frequency):
+    """Generate second-order interferometric autocorrelation
+
+    Evaluate the second-order interferometric optical autocorrelation of a pulse given by *angular_frequency* and *envelope* as a function of *t*.
+    """
     envelopec = np.conj(envelope)
     envelope2 = envelope*envelope
     envelope_mod2 = envelope*envelopec
