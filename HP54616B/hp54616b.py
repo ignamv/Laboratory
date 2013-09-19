@@ -147,6 +147,21 @@ class HP54616B(GPIBVisaDriver):
     def trigger_source(self, source):
         self.send('TRIGGER:SOURCE ' + source)
 
+    trigger_modes = ['autlevel', 'auto', 'normal', 'single', 'tv']
+    @Feat(values=zip(trigger_modes, trigger_modes))
+    def trigger_mode(self):
+        return self.query('TRIGGER:MODE?')
+
+    @trigger_mode.setter
+    def trigger_mode(self, mode):
+        self.send('TRIGGER:MODE ' + mode)
+
+    def stop(self):
+        self.send('STOP')
+
+    def run(self):
+        self.send('RUN')
+
     @DictFeat(units='V', keys=channels, limits=(16e-3, 40))
     def range(self, key):
         """Full-scale vertical scale of the channel
