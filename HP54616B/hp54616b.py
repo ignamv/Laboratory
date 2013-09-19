@@ -105,11 +105,6 @@ class HP54616B(GPIBVisaDriver):
         self.send(':MEASURE:SOURCE CHANNEL{:d}'.format(channel))
         return float(self.query(':MEASURE:VAVERAGE?'))
 
-    acquisition_modes = ['normal', 'peak', 'average']
-    @Feat(values=dict(zip(acquisition_modes, acquisition_modes)))
-    def acquisition_mode(self):
-        return self.query(
-
     def run(self):
         self.send(':RUN')
 
