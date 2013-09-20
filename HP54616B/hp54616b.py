@@ -148,9 +148,18 @@ class HP54616B(GPIBVisaDriver):
         self.send('TRIGGER:SOURCE ' + source)
 
     trigger_modes = ['autlevel', 'auto', 'normal', 'single', 'tv']
-    @Feat(values=zip(trigger_modes, trigger_modes))
+    @Feat(values=dict(zip(trigger_modes, trigger_modes)))
     def trigger_mode(self):
         return self.query('TRIGGER:MODE?')
+
+    @Feat(limits=(0,100))
+    def complete_percent(self):
+        """Minimum percentage of time buckets filled before the acquisition is considered complete"""
+        return self.query('ACQUIRE:COMPLETE?')
+
+    @complete_percent.setter
+    def complete_percent(self, percentage):
+        self.send('ACQUIRE:COMPLETE {}'.format(percentage))
 
     @trigger_mode.setter
     def trigger_mode(self, mode):
