@@ -165,6 +165,14 @@ class HP54616B(GPIBVisaDriver):
     def trigger_mode(self, mode):
         self.send('TRIGGER:MODE ' + mode)
 
+    @Feat(units='V')
+    def trigger_level(self):
+        return self.query('TRIGGER:LEVEL?')
+
+    @trigger_level.setter
+    def trigger_level(self, level):
+        self.send('TRIGGER:LEVEL {}'.format(level))
+
     def stop(self):
         self.send('STOP')
 
