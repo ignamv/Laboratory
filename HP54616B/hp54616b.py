@@ -226,7 +226,17 @@ class HP54616B(GPIBVisaDriver):
     def vectors(self, value):
         self.send(':DISPLAY:CONNECT ' + value)
 
-    def data(self, channels):
+    def digitize(self, channels):
+        if not all(channel in self.channels for channel in channels):
+            raise Exception('Invalid channel')
+        for channel in channels:
+            self.send(':SHOW CHANNEL{:d}'.format(channel))
+        self.timebase_mode = 'normal'
+        # Disable vectors to acquire more samples
+        self.vectors = False
+        self.send(':DIGITIZE ' + ','.join('CHANNEL{:d}'.format(channel)
+                                            for channel in channels))
+    def data(self, channels, existing_data=False):
         """Acquire data from the specified channels.
 
         Returns [t, v1, ..., vn]
@@ -238,13 +248,8 @@ class HP54616B(GPIBVisaDriver):
             raise Exception('Invalid channel')
         if len(channels) == 0:
             return
-        for channel in channels:
-            self.send(':SHOW CHANNEL{:d}'.format(channel))
-        self.timebase_mode = 'normal'
-        # Disable vectors to acquire more samples
-        self.vectors = False
-        self.send(':DIGITIZE ' + ','.join('CHANNEL{:d}'.format(channel)
-                                        for channel in channels))
+        if not existing_data:
+            self.digitize(channels)
         ret = []
         for channel in channels:
             self.send(':WAVEFORM:SOURCE CHANNEL{:d}'.format(channel))
