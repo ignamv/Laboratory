@@ -2,6 +2,8 @@ from HP54616B.hp54616b import HP54616B
 from hp33120a import HP33120A
 from lantz import Q_
 
+# Configure instruments for slow scan
+
 osc_resource = 'GPIB0::14::INSTR'
 gen_resource = 'GPIB0::8::INSTR'
 lvdt_channel = 2

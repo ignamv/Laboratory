@@ -8,8 +8,10 @@ from lantz import Q_
 from esp300 import ESP300
 from HP54616B import HP54616B
 
-""" Measure autocorrelation with slow-scan autocorrelator
-"""
+# Measure autocorrelation with slow-scan autocorrelator
+#
+# Instruct the positioner to move step by step and take measurements with the
+# oscilloscope.
 
 # Configuration
 axis = 3

@@ -3,6 +3,8 @@ import numpy as np
 from lantz import Q_
 from HP54616B import HP54616B
 
+# Plot PMT and LVDT data from a slow scan measurement
+
 parser = argparse.ArgumentParser()
 parser.add_argument('filename')
 args = parser.parse_args()

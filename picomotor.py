@@ -4,6 +4,9 @@ from ctypes import windll
 from time import sleep
 
 class Picomotor(object):
+    """Control a Picomotor driver which is connected to a function generator
+    for the step input and to the PC parallel port for direction"""
+
     def __init__(self, channel, port = 0x378):
         """Picomotor handler
 
