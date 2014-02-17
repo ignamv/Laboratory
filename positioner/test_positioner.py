@@ -5,6 +5,8 @@ from lvdt import LVDT
 from os import listdir
 from time import sleep
 
+"""Compare positioner readout with LVDT measurement along positioner range of motion. Analyze output with analyze_data.py
+"""
 axis = 1
 calibration_file = 'C:\\ignacio\\mediciones\\lvdt\\calibracion lvdt.csv'
 oscilloscope_resource = 'GPIB0::14::INSTR'

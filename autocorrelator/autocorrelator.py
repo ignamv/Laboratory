@@ -8,6 +8,9 @@ from lantz import Q_
 from esp300 import ESP300
 from HP54616B import HP54616B
 
+""" Measure autocorrelation with slow-scan autocorrelator
+"""
+
 # Configuration
 axis = 3
 lvdt_channel = 1

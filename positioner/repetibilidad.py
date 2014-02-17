@@ -5,6 +5,9 @@ from lvdt import LVDT
 from os import listdir
 from time import sleep
 
+"""Test repeatability of positioner by measuring the spread of successive visits to a location using a LVDT
+"""
+
 axis = 1
 calibration_file = 'C:\\ignacio\\mediciones\\lvdt\\calibracion lvdt.csv'
 oscilloscope_resource = 'GPIB0::14::INSTR'

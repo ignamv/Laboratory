@@ -4,6 +4,8 @@ import os
 from matplotlib import pyplot as plt
 from os import listdir
 
+"""Analyze output of repetibilidad.py
+"""
 output_directory = 'C:\\ignacio\\mediciones\\posicionador\\repetibilidad'
 
 if len(os.sys.argv) == 2:

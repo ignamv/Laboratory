@@ -3,6 +3,8 @@ import os
 from matplotlib import pyplot as plt
 from os import listdir
 
+"""Analyze the output of test_positioner.py
+"""
 output_directory = 'C:\\ignacio\\mediciones\\posicionador'
 
 if len(os.sys.argv) == 2:
