@@ -5,6 +5,7 @@ from lantz.visa import USBVisaDriver
 
 
 class Agilent34405(USBVisaDriver):
+    """Lantz driver for the Agilent 34405 5 1/2 digit multimeter"""
 
     def initialize(self):
         super().initialize()

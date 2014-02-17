@@ -7,6 +7,8 @@ from lantz import Feat, DictFeat, Q_, Action
 
 
 class HP33120A(GPIBVisaDriver):
+    """Lantz driver for HP 33120A function generator"""
+
     @Feat
     def idn(self):
         return self.query('*IDN?')
